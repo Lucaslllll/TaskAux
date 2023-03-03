@@ -1,9 +1,10 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
+#include <sstream>
 
 #include "crow.h"
-
+#include "db.hpp"
 
 using namespace std;
 
@@ -15,11 +16,22 @@ int main(){
         return "Hello world";
     });
 
-    CROW_ROUTE(app, "/json")([] {
-        crow::json::wvalue x({{"message", "Hello, World!"}});
-        x["message2"] = "Hello, World.. Again!";
-        return x;
+
+    CROW_ROUTE(app, "/task").methods("POST"_method)([](const crow::request& req){
+        auto x = crow::json::load(req.body);
+        if (!x){
+            return crow::response(400);
+        }
+
+        // save in db
+        Database *data = new Database();
+        data->createTableTask();
+
+        delete data; 
+        // save in db end
+
         
+        return crow::response("Feito");
     });
 
     app.port(18080).run();

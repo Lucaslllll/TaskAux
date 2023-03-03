@@ -18,18 +18,24 @@ include_directories( ./include )
 set( APP_NAME "first_crow" )
 add_executable( ${APP_NAME}
                 src/main.cpp
+                src/db.cpp
                 )
 
 # define C++14 standard
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 14)
 
-find_package(Crow)
-target_link_libraries(${APP_NAME} PUBLIC Crow::Crow)
+#sqlite3
+include_directories(/usr/include)
+link_directories(/usr/lib)
 
-add_custom_target(
-    verify
-    COMMAND python3 ${CMAKE_SOURCE_DIR}/../scripts/verify-inputs.py ./${APP_NAME}
-    DEPENDS ${APP_NAME}
-)
+#crow
+find_package(Crow)
+
+# add crow and sqlite3
+target_link_libraries(${APP_NAME} PUBLIC Crow::Crow sqlite3)
+
+
+
+
 
 # The end
