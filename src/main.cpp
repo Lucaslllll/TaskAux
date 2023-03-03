@@ -25,13 +25,13 @@ int main(){
 
         // save in db
         Database *data = new Database();
-        data->createTableTask();
+        bool resp = data->createTableTask();
 
-        delete data; 
+//         delete data; 
         // save in db end
 
         
-        return crow::response("Feito");
+        return crow::response("FEITO");
     });
 
     app.port(18080).run();

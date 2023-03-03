@@ -20,6 +20,7 @@ bool Database::createTableCategory(){
 	char* messageError;
 	int exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
 
+    cout << "OPA" << "\n";
 	if(exit != SQLITE_OK){
 		return false;
 	}
