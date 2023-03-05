@@ -9,6 +9,9 @@
 using namespace std;
 
 
+
+
+
 int main(){
     crow::SimpleApp app;
 
@@ -23,15 +26,40 @@ int main(){
             return crow::response(400);
         }
 
+        // cout <<  << "\n";
         // save in db
         Database *data = new Database();
-        bool resp = data->createTableTask();
+        // data->createTableTask();
+        data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].i(), x["id_category"].i());
 
-//         delete data; 
+
+        delete data; 
         // save in db end
 
+        return crow::response("ok");
+    
+    });
+
+
+    CROW_ROUTE(app, "/category").methods("POST"_method)([](const crow::request& req){
+        auto x = crow::json::load(req.body);
+        if (!x){
+            return crow::response(400);
+        }
+
+        Database *data = new Database();
+        // data->createTableCategory();
+        // data->insertTableCategory(x["id"].i(), x["name"].s());
         
-        return crow::response("FEITO");
+        Database::category cat = data->selectTableCategory();
+        
+        cout << cat.id << "\n";
+        cout << cat.name << "\n";
+
+        delete data;
+
+        return crow::response("ok");
+    
     });
 
     app.port(18080).run();
