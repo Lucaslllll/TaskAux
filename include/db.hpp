@@ -26,7 +26,7 @@ public:
 
 	bool createTableCategory();
 	bool insertTableCategory(int id, std::string name);
-	std::vector <category*> selectTableCategory();
+	std::vector <category> selectTableCategory();
 
 
 	void closeDB();

@@ -2,6 +2,7 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
+#include <nlohmann/json.hpp>
 
 #include "crow.h"
 #include "db.hpp"
@@ -44,22 +45,20 @@ int main(){
     CROW_ROUTE(app, "/category").methods("GET"_method, "POST"_method)([](const crow::request& req){
         
         if (req.method == "GET"_method){
-            Database *data = new Database();
+            Database data = Database();
+            crow::json::wvalue x;
+            int contador = 0;
             
+            for (auto cat : data.selectTableCategory()){
+            
+                x[contador]["id"] = cat.id;
+                x[contador]["name"] = cat.name;
+                contador++;
 
-            vector <crow::json::wvalue> lista_resposta;
-            for (Database::category* cat : data->selectTableCategory()){
-                crow::json::wvalue resposta;
-                resposta["id"] = cat->id;
-                resposta["name"] = cat->name.c_str();
-
-                lista_resposta.push_back(resposta);
             }
 
             
-        
-            delete data;
-            return crow::response(lista_resposta);
+            return crow::response(x);
 
         }else if(req.method == "POST"_method){
             auto x = crow::json::load(req.body);
