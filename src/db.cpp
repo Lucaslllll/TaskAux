@@ -136,30 +136,33 @@ static int callback(void* data, int argc, char** argv, char** azColName)
 }
 
 
-Database::category Database::selectTableCategory(){
-	char* messageError;
+vector <Database::category*> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
-    int exit = sqlite3_open("sqldata.db", &m_db);
+    int rc = sqlite3_open("sqldata.db", &m_db);
     string query = "SELECT * FROM CATEGORY;";
-  	category c;
+  	std::vector<category*> vector_c;
 
-	int rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
+	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
 	if (rc != SQLITE_OK) {
-	 cerr << "Erro" << "\n";
-	 return c;
+		cerr << "Erro" << "\n";
+		return vector_c;
 	}
 
 	// Loop through the results, a row at a time.
 	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
-		c.id = sqlite3_column_int(stmt, 0);
-		c.name = (const char*)sqlite3_column_text(stmt, 1);
-		  
+		category *c;
+		
+		c->id = sqlite3_column_int(stmt, 0);
+		c->name = (const char*)sqlite3_column_text(stmt, 1);
+		vector_c.push_back(c);
+		
+		// delete c;
 	}
 	
 	// Free the statement when done.
 	sqlite3_finalize(stmt);
 
-	return c;
+	return vector_c;
 
 }
 

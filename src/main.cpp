@@ -41,24 +41,43 @@ int main(){
     });
 
 
-    CROW_ROUTE(app, "/category").methods("POST"_method)([](const crow::request& req){
-        auto x = crow::json::load(req.body);
-        if (!x){
-            return crow::response(400);
+    CROW_ROUTE(app, "/category").methods("GET"_method, "POST"_method)([](const crow::request& req){
+        
+        if (req.method == "GET"_method){
+            Database *data = new Database();
+            
+
+            vector <crow::json::wvalue> lista_resposta;
+            for (Database::category* cat : data->selectTableCategory()){
+                crow::json::wvalue resposta;
+                resposta["id"] = cat->id;
+                resposta["name"] = cat->name.c_str();
+
+                lista_resposta.push_back(resposta);
+            }
+
+            
+        
+            delete data;
+            return crow::response(lista_resposta);
+
+        }else if(req.method == "POST"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            // data->createTableCategory();
+            data->insertTableCategory(x["id"].i(), x["name"].s());
+            
+            delete data;
+            return crow::response("ok");    
         }
 
-        Database *data = new Database();
-        // data->createTableCategory();
-        // data->insertTableCategory(x["id"].i(), x["name"].s());
+        // code not accept method
+        return crow::response(405);
         
-        Database::category cat = data->selectTableCategory();
-        
-        cout << cat.id << "\n";
-        cout << cat.name << "\n";
-
-        delete data;
-
-        return crow::response("ok");
     
     });
 
