@@ -19,6 +19,16 @@ public:
 		
 	};
 
+	struct task{
+		int id;
+		std::string name;
+		std::string text;
+		std::string created;
+		bool finished;
+		int id_category;
+	};
+
+
 	Database();
 	bool createTableTask();
 	bool insertTableTask(int id, std::string name, std::string text, std::string created, bool finished, int id_category);
@@ -27,6 +37,7 @@ public:
 	bool createTableCategory();
 	bool insertTableCategory(int id, std::string name);
 	std::vector <category> selectTableCategory();
+	std::vector <task> selectTableTask();
 
 
 	void closeDB();

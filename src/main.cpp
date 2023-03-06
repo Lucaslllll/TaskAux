@@ -13,32 +13,61 @@ using namespace std;
 
 
 
-int main(){
+int main(int argc, char *argv[]){
     crow::SimpleApp app;
 
+    
+    if (argc > 1){ 
+        cout << argv[1] << "\n";   
+        if (strcmp( argv[1], "createtables") == 0){
+            Database *data = new Database();
+            data->createTableCategory();
+            data->createTableTask();
+            cout << "Tables Created" << "\n";
+        }
+    }
+
     CROW_ROUTE(app, "/")([](){
-        return "Hello world";
+        std::string paths = "paths = [\n task/\n category/\n ]";
+        return paths;
     });
 
 
-    CROW_ROUTE(app, "/task").methods("POST"_method)([](const crow::request& req){
-        auto x = crow::json::load(req.body);
-        if (!x){
-            return crow::response(400);
+    CROW_ROUTE(app, "/task").methods("GET"_method, "POST"_method)([](const crow::request& req){
+        if (req.method == "POST"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+
+
+            return crow::response("ok");
+        
+        }else if(req.method == "GET"_method){
+            Database data = Database();
+            crow::json::wvalue x;
+            int contador = 0;
+            
+            for (auto cat : data.selectTableTask()){
+                x[contador]["id"] = cat.id;
+                x[contador]["name"] = cat.name;
+                x[contador]["text"] = cat.text;
+                x[contador]["created"] = cat.created;
+                x[contador]["finished"] = cat.finished;
+                x[contador]["id_category"] = cat.id_category;
+
+                contador++;
+            }
+
+            
+            return crow::response(x);   
         }
 
-        // cout <<  << "\n";
-        // save in db
-        Database *data = new Database();
-        // data->createTableTask();
-        data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].i(), x["id_category"].i());
+        return crow::response(405);
 
-
-        delete data; 
-        // save in db end
-
-        return crow::response("ok");
-    
     });
 
 
@@ -67,7 +96,6 @@ int main(){
             }
 
             Database *data = new Database();
-            // data->createTableCategory();
             data->insertTableCategory(x["id"].i(), x["name"].s());
             
             delete data;

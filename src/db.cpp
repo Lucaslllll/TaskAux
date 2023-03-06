@@ -22,8 +22,10 @@ bool Database::createTableCategory(){
 	char* messageError;
 	int exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
 
-    cout << messageError << "\n";
+    
 	if(exit != SQLITE_OK){
+		cout << messageError << "\n";
+		sqlite3_free(messageError);
 		return false;
 	}
 	else{
@@ -49,7 +51,7 @@ bool Database::insertTableCategory(int id, string name){
     exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
     if (exit != SQLITE_OK) {
         cerr << messageError << "\n";
-        sqlite3_free(messageError);
+    	sqlite3_free(messageError);    
     	
     	return false;
     }
@@ -60,81 +62,6 @@ bool Database::insertTableCategory(int id, string name){
 
 
 }
-
-
-bool Database::createTableTask(){
-
-	if (createTableCategory()){
-		string sql = "CREATE TABLE TASK("
-					 "ID INT PRIMARY KEY  NOT NULL, "
-					 "NAME 			TEXT  NOT NULL, "
-					 "TEXT 			TEXT, "
-					 "CREATED       DATE  NOT NULL, "
-					 "FINISHED      BIT, "
-					 "ID_CATEGORY   INT FOREIGN REFERENCES CATEGORY(ID_CATEGORY) );";
-		char* messageError;
-		int exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
-		
-		cout << messageError << "\n";
-		if(exit != SQLITE_OK){
-			return false;
-		}
-		else{
-			return true;
-		}
-
-	}else{
-		return false;
-	}
-
-
-}
-
-
-
-bool Database::insertTableTask(int id, string name, string text, string created, bool finished, int id_category){
-	char* messageError;
-    int exit = sqlite3_open("sqldata.db", &m_db);
-    string query = "SELECT * FROM TASK;";
-  
-    cout << "STATE OF TABLE BEFORE INSERT" << "\n";
-  
-    sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
-  
-
-
-  	// insert
-    string sql = "INSERT INTO TASK VALUES("+to_string(id)+", '"+name+"', '"+text+"', "+created+", "+to_string(finished)+", "+to_string(id_category)+");";
-  
-    exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
-    if (exit != SQLITE_OK) {
-        cerr << messageError << "\n";
-        sqlite3_free(messageError);
-    	
-    	return false;
-    }
-    else{
-        cout << "Records created Successfully!" << "\n";
-    	return true;
-    }
-
-
-}
-
-
-static int callback(void* data, int argc, char** argv, char** azColName)
-{
-    int i;
-    fprintf(stderr, "%s: ", (const char*)data);
-  
-    for (i = 0; i < argc; i++) {
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-  
-    printf("\n");
-    return 0;
-}
-
 
 vector <Database::category> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
@@ -165,6 +92,122 @@ vector <Database::category> Database::selectTableCategory(){
 	return vector_c;
 
 }
+
+
+
+
+bool Database::createTableTask(){
+
+	
+	string sql = "CREATE TABLE TASK("
+				 "ID INT PRIMARY KEY  NOT NULL, "
+				 "NAME 			TEXT  NOT NULL, "
+				 "TEXT 			TEXT, "
+				 "CREATED       DATE  NOT NULL, "
+				 "FINISHED      BIT, "
+				 "ID_CATEGORY   INT, "
+				 "FOREIGN KEY(ID_CATEGORY) REFERENCES CATEGORY(ID_CATEGORY) );";
+	char* messageError;
+	int exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
+	
+	
+	if(exit != SQLITE_OK){
+		cout << messageError << "\n";
+		sqlite3_free(messageError);
+		return false;
+
+	}
+	else{
+		return true;
+	}
+
+
+
+}
+
+
+
+bool Database::insertTableTask(int id, string name, string text, string created, bool finished, int id_category){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    string query = "SELECT * FROM TASK;";
+
+	// esses cout são debug, tirar quando eu for terminar esse projetinho  
+    cout << "STATE OF TABLE BEFORE INSERT" << "\n";
+  
+    sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+  
+
+
+  	// insert
+    string sql = "INSERT INTO TASK VALUES("+to_string(id)+", '"+name+"', '"+text+"', "+created+", "+to_string(finished)+", "+to_string(id_category)+");";
+  
+    exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+        sqlite3_free(messageError);
+    	
+    	return false;
+    }
+    else{
+        cout << "Records created Successfully!" << "\n";
+    	return true;
+    }
+
+
+}
+
+vector <Database::task> Database::selectTableTask(){
+	sqlite3_stmt *stmt;
+	const char* messageError;
+    int rc = sqlite3_open("sqldata.db", &m_db);
+    string query = "SELECT * FROM TASK;";
+  	std::vector<task> vector_t;
+
+	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, &messageError);
+	if (rc != SQLITE_OK) {
+		cerr << messageError << "\n";
+		return vector_t;
+	}
+
+	// Loop through the results, a row at a time.
+	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		task t;
+		
+		t.id = sqlite3_column_int(stmt, 0);
+		t.name = (const char*)sqlite3_column_text(stmt, 1);
+		t.text = (const char*)sqlite3_column_text(stmt, 2);
+		t.created = (const char*)sqlite3_column_text(stmt, 3);
+		t.finished = (const char*)sqlite3_column_type(stmt, 4);
+		t.id_category = sqlite3_column_int(stmt, 5);
+
+		vector_t.push_back(t);
+		
+		// delete c;
+	}
+	
+	// Free the statement when done.
+	sqlite3_finalize(stmt);
+
+	return vector_t;
+
+}
+
+
+// útil para usar nos debugs
+// static int callback(void* data, int argc, char** argv, char** azColName)
+// {
+//     int i;
+//     fprintf(stderr, "%s: ", (const char*)data);
+  
+//     for (i = 0; i < argc; i++) {
+//         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+//     }
+  
+//     printf("\n");
+//     return 0;
+// }
+
 
 
 void Database::closeDB(){
