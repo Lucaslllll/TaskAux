@@ -37,14 +37,7 @@ bool Database::createTableCategory(){
 bool Database::insertTableCategory(int id, string name){
 	char* messageError;
     int exit = sqlite3_open("sqldata.db", &m_db);
-    string query = "SELECT * FROM CATEGORY;";
-  
-    cout << "STATE OF TABLE BEFORE INSERT" << "\n";
-  
-    sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
-  
-
-
+    
   	// insert
     string sql = "INSERT INTO CATEGORY VALUES("+to_string(id)+", '"+name+"');";
   
@@ -56,12 +49,34 @@ bool Database::insertTableCategory(int id, string name){
     	return false;
     }
     else{
-        cout << "Records created Successfully!" << "\n";
+        cout << "Records created Successfully!" << '\n';
     	return true;
     }
 
 
 }
+
+bool Database::removeTableCategory(int id){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    
+    // remove
+    string query = "DELETE FROM CATEGORY WHERE ID = "+to_string(id)+";";
+  
+    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+    	sqlite3_free(messageError);    
+    	
+    	return false;
+    }
+    else{
+        cout << "Records removed Successfully!" << '\n';
+    	return true;
+    }
+
+}
+
 
 vector <Database::category> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
@@ -92,6 +107,7 @@ vector <Database::category> Database::selectTableCategory(){
 	return vector_c;
 
 }
+
 
 
 
@@ -130,16 +146,9 @@ bool Database::createTableTask(){
 bool Database::insertTableTask(int id, string name, string text, string created, bool finished, int id_category){
 	char* messageError;
     int exit = sqlite3_open("sqldata.db", &m_db);
-    string query = "SELECT * FROM TASK;";
+    
 
-	// esses cout são debug, tirar quando eu for terminar esse projetinho  
-    cout << "STATE OF TABLE BEFORE INSERT" << "\n";
-  
-    sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
-  
-
-
-  	// insert
+    // insert
     string sql = "INSERT INTO TASK VALUES("+to_string(id)+", '"+name+"', '"+text+"', "+created+", "+to_string(finished)+", "+to_string(id_category)+");";
   
     exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
@@ -150,7 +159,7 @@ bool Database::insertTableTask(int id, string name, string text, string created,
     	return false;
     }
     else{
-        cout << "Records created Successfully!" << "\n";
+        cout << "Records created Successfully!" << '\n';
     	return true;
     }
 
@@ -193,6 +202,25 @@ vector <Database::task> Database::selectTableTask(){
 
 }
 
+
+bool Database::removeTableTask(int id){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    
+    // remove
+    string query = "DELETE FROM TASK WHERE ID = "+to_string(id)+";";
+  
+    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+    	sqlite3_free(messageError);    
+    	
+    	return false;
+    }else{
+        cout << "Records removed Successfully!" << '\n';
+    	return true;
+    }
+}
 
 // útil para usar nos debugs
 // static int callback(void* data, int argc, char** argv, char** azColName)

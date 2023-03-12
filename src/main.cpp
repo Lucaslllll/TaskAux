@@ -28,11 +28,13 @@ int main(int argc, char *argv[]){
     }
 
     CROW_ROUTE(app, "/")([](){
-        std::string paths = "paths = [\n task/\n category/\n ]";
+        std::string paths = "paths = [\n\n  task/\n  category/\n\n]";
         return paths;
     });
 
 
+
+    // TASK ROUTES 
     CROW_ROUTE(app, "/task").methods("GET"_method, "POST"_method)([](const crow::request& req){
         if (req.method == "POST"_method){
             auto x = crow::json::load(req.body);
@@ -41,10 +43,15 @@ int main(int argc, char *argv[]){
             }
 
             Database *data = new Database();
-            data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+            bool posted = data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+            delete data;
 
-
-            return crow::response("ok");
+            if (posted){
+                return crow::response(200, "ok");
+            }else{
+                return crow::response(400, "UNIQUE constraint failed: CATEGORY.ID");   
+            }
+            
         
         }else if(req.method == "GET"_method){
             Database data = Database();
@@ -52,6 +59,8 @@ int main(int argc, char *argv[]){
             int contador = 0;
             
             for (auto cat : data.selectTableTask()){
+                cout << cat.created << "\n";
+
                 x[contador]["id"] = cat.id;
                 x[contador]["name"] = cat.name;
                 x[contador]["text"] = cat.text;
@@ -59,17 +68,50 @@ int main(int argc, char *argv[]){
                 x[contador]["finished"] = cat.finished;
                 x[contador]["id_category"] = cat.id_category;
 
-                contador++;
+                ++contador;
             }
 
             
             return crow::response(x);   
+        
         }
 
-        return crow::response(405);
+        return crow::response(405, "method not accept");
 
     });
 
+
+    CROW_ROUTE(app, "/task/<int>").methods("DELETE"_method)([](const crow::request& req, int id){
+        if (req.method == "DELETE"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            bool deleted = data->removeTableTask(id);
+            delete data;
+
+            if (deleted){
+                return crow::response(200, "deleted with success");
+            }else{
+                return crow::response(404, "not found task");   
+            }
+            
+        
+        }
+
+        return crow::response(405, "method not accept");
+
+    });
+
+    
+    // TASK ROUTES END
+
+
+
+
+    // CATEGORIES ROUTES
 
     CROW_ROUTE(app, "/category").methods("GET"_method, "POST"_method)([](const crow::request& req){
         
@@ -82,7 +124,7 @@ int main(int argc, char *argv[]){
             
                 x[contador]["id"] = cat.id;
                 x[contador]["name"] = cat.name;
-                contador++;
+                ++contador;
 
             }
 
@@ -96,17 +138,48 @@ int main(int argc, char *argv[]){
             }
 
             Database *data = new Database();
-            data->insertTableCategory(x["id"].i(), x["name"].s());
-            
+            bool posted = data->insertTableCategory(x["id"].i(), x["name"].s());
             delete data;
-            return crow::response("ok");    
-        }
 
+            if(posted){
+                return crow::response(200, "ok");    
+            }else{
+                return crow::response(400, "UNIQUE constraint failed: CATEGORY.ID");
+            }
+
+        }
         // code not accept method
-        return crow::response(405);
-        
+        return crow::response(405);        
     
     });
+
+    CROW_ROUTE(app, "/category/<int>").methods("PUT"_method, "DELETE"_method)([](const crow::request& req, int id){
+        if (req.method == "DELETE"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            bool deleted = data->removeTableCategory(id);
+
+            if (deleted){
+                return crow::response(200, "deleted with success");
+            }else{
+                return crow::response(404, "not found category");
+            }
+
+
+        }
+
+
+        return crow::response(405, "method not accept");
+
+    });
+
+    // CATEGORIES ROUTES END
+
+
 
     app.port(18080).run();
 } 

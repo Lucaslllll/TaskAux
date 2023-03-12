@@ -32,10 +32,13 @@ public:
 	Database();
 	bool createTableTask();
 	bool insertTableTask(int id, std::string name, std::string text, std::string created, bool finished, int id_category);
-
+	bool removeTableTask(int id);
 
 	bool createTableCategory();
 	bool insertTableCategory(int id, std::string name);
+	bool removeTableCategory(int id);
+
+
 	std::vector <category> selectTableCategory();
 	std::vector <task> selectTableTask();
 
