@@ -32,10 +32,10 @@ link_directories(/usr/lib)
 find_package(Crow)
 
 # json
-find_package(nlohmann_json 3.11.2 REQUIRED)
+#find_package(nlohmann_json 3.11.2 REQUIRED)
 
 # add crow and sqlite3 and json
-target_link_libraries(${APP_NAME} PUBLIC Crow::Crow sqlite3 PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(${APP_NAME} PUBLIC Crow::Crow sqlite3)
 
 
 

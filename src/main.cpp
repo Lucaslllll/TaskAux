@@ -2,7 +2,6 @@
 #include <vector>
 #include <fstream>
 #include <sstream>
-#include <nlohmann/json.hpp>
 
 #include "crow.h"
 #include "db.hpp"
@@ -28,7 +27,11 @@ int main(int argc, char *argv[]){
     }
 
     CROW_ROUTE(app, "/")([](){
-        std::string paths = "paths = [\n\n  task/\n  category/\n\n]";
+        std::string paths = "paths = "
+                            "[\n\n  "
+                            "task/\n  task/<int>\n  "
+                            "category/\n  category/<int>"
+                            "\n\n]";
         return paths;
     });
 

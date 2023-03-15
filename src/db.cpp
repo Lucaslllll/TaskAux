@@ -78,6 +78,27 @@ bool Database::removeTableCategory(int id){
 }
 
 
+bool Database::updateTableCategory(int id){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    
+    // remove
+    string query = "DELETE FROM CATEGORY WHERE ID = "+to_string(id)+";";
+  
+    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+    	sqlite3_free(messageError);    
+    	
+    	return false;
+    }
+    else{
+        cout << "Records removed Successfully!" << '\n';
+    	return true;
+    }
+}
+
+
 vector <Database::category> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
     int rc = sqlite3_open("sqldata.db", &m_db);
@@ -166,6 +187,28 @@ bool Database::insertTableTask(int id, string name, string text, string created,
 
 }
 
+
+bool Database::removeTableTask(int id){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    
+    // remove
+    string query = "DELETE FROM TASK WHERE ID = "+to_string(id)+";";
+  
+    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+    	sqlite3_free(messageError);    
+    	
+    	return false;
+    }else{
+        cout << "Records removed Successfully!" << '\n';
+    	return true;
+    }
+}
+
+
+
 vector <Database::task> Database::selectTableTask(){
 	sqlite3_stmt *stmt;
 	const char* messageError;
@@ -203,24 +246,7 @@ vector <Database::task> Database::selectTableTask(){
 }
 
 
-bool Database::removeTableTask(int id){
-	char* messageError;
-    int exit = sqlite3_open("sqldata.db", &m_db);
-    
-    // remove
-    string query = "DELETE FROM TASK WHERE ID = "+to_string(id)+";";
-  
-    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
-    if (exit != SQLITE_OK) {
-        cerr << messageError << "\n";
-    	sqlite3_free(messageError);    
-    	
-    	return false;
-    }else{
-        cout << "Records removed Successfully!" << '\n';
-    	return true;
-    }
-}
+
 
 // útil para usar nos debugs
 // static int callback(void* data, int argc, char** argv, char** azColName)
