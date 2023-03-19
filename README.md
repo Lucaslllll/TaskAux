@@ -18,6 +18,6 @@ project to improve my skills with c++ and rest api http in c++
 # routes create until now
 
 - http://127.0.0.1:18080/task ===> FOR GET AND POST METHOD's
-- http://127.0.0.1:18080/task/"some_integer_id" ===> FOR DELETE METHOD
+- http://127.0.0.1:18080/task/"some_integer_id" ===> FOR DELETE, PUT AND RETRIEVE(GET) METHOD
 - http://127.0.0.1:18080/category ===> FOR GET AND POST METHOD's
-- http://127.0.0.1:18080/category/"some_integer_id" ===> FOR DELETE METHOD
+- http://127.0.0.1:18080/category/"some_integer_id" ===> FOR DELETE, PUT AND RETRIEVE(GET) METHOD

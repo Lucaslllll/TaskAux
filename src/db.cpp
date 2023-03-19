@@ -4,6 +4,7 @@ using namespace std;
 
 
 
+
 Database::Database(){
 	int rc = sqlite3_open("sqldata.db", &m_db);
 	if(rc != SQLITE_OK){
@@ -12,7 +13,11 @@ Database::Database(){
 		m_open = true;
 	}
 
+
 }
+
+
+// ROUTES CATEGORY
 
 bool Database::createTableCategory(){
 	string sql = "CREATE TABLE CATEGORY("
@@ -78,12 +83,12 @@ bool Database::removeTableCategory(int id){
 }
 
 
-bool Database::updateTableCategory(int id){
+bool Database::updateTableCategory(int id, string name){
 	char* messageError;
     int exit = sqlite3_open("sqldata.db", &m_db);
     
-    // remove
-    string query = "DELETE FROM CATEGORY WHERE ID = "+to_string(id)+";";
+    // update
+    string query = "UPDATE CATEGORY SET NAME = '"+name+"' WHERE ID = "+to_string(id)+";";
   
     exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
     if (exit != SQLITE_OK) {
@@ -93,7 +98,7 @@ bool Database::updateTableCategory(int id){
     	return false;
     }
     else{
-        cout << "Records removed Successfully!" << '\n';
+        cout << "Records updated Successfully!" << '\n';
     	return true;
     }
 }
@@ -103,6 +108,36 @@ vector <Database::category> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
     int rc = sqlite3_open("sqldata.db", &m_db);
     string query = "SELECT * FROM CATEGORY;";
+  	vector<category> vector_c;
+
+	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
+	if (rc != SQLITE_OK) {
+		cerr << "Erro" << "\n";
+		return vector_c;
+	}
+
+	// Loop through the results, a row at a time.
+	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		category c;
+		
+		c.id = sqlite3_column_int(stmt, 0);
+		c.name = (const char*)sqlite3_column_text(stmt, 1);
+		vector_c.push_back(c);
+		
+		// delete c;
+	}
+	
+	// Free the statement when done.
+	sqlite3_finalize(stmt);
+
+	return vector_c;
+
+}
+
+vector <Database::category> Database::selectTableCategory(int id){
+	sqlite3_stmt *stmt;
+    int rc = sqlite3_open("sqldata.db", &m_db);
+    string query = "SELECT * FROM CATEGORY WHERE ID='"+to_string(id)+"';";
   	std::vector<category> vector_c;
 
 	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
@@ -131,7 +166,7 @@ vector <Database::category> Database::selectTableCategory(){
 
 
 
-
+// ROUTES TASK
 
 bool Database::createTableTask(){
 
@@ -208,13 +243,37 @@ bool Database::removeTableTask(int id){
 }
 
 
+bool Database::updateTableTask(int id, string name, string text, string created, bool finished, int id_category){
+	char* messageError;
+    int exit = sqlite3_open("sqldata.db", &m_db);
+    
+    // update
+    string query = "UPDATE TASK " 
+    			   "SET NAME = '"+name+"', TEXT = '"+text+"', CREATED = '"+created+"', "
+    			   "	FINISHED = "+to_string(finished)+", ID_CATEGORY = "+to_string(id_category)+" "  
+    			   "WHERE ID = "+to_string(id)+";";
+  
+    exit = sqlite3_exec(m_db, query.c_str(), NULL, 0, &messageError);
+    if (exit != SQLITE_OK) {
+        cerr << messageError << "\n";
+    	sqlite3_free(messageError);    
+    	
+    	return false;
+    }
+    else{
+        cout << "Records updated Successfully!" << '\n';
+    	return true;
+    }
+}
+
+
 
 vector <Database::task> Database::selectTableTask(){
 	sqlite3_stmt *stmt;
 	const char* messageError;
     int rc = sqlite3_open("sqldata.db", &m_db);
     string query = "SELECT * FROM TASK;";
-  	std::vector<task> vector_t;
+  	vector<task> vector_t;
 
 	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, &messageError);
 	if (rc != SQLITE_OK) {
@@ -245,22 +304,42 @@ vector <Database::task> Database::selectTableTask(){
 
 }
 
+vector <Database::task> Database::selectTableTask(int id){
+	sqlite3_stmt *stmt;
+	const char* messageError;
+    int rc = sqlite3_open("sqldata.db", &m_db);
+    string query = "SELECT * FROM TASK WHERE ID='"+to_string(id)+"';";
+  	vector<task> vector_t;
 
+	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, &messageError);
+	if (rc != SQLITE_OK) {
+		cerr << messageError << "\n";
+		return vector_t;
+	}
 
+	// Loop through the results, a row at a time.
+	while ((rc = sqlite3_step(stmt)) == SQLITE_ROW) {
+		task t;
+		
+		t.id = sqlite3_column_int(stmt, 0);
+		t.name = (const char*)sqlite3_column_text(stmt, 1);
+		t.text = (const char*)sqlite3_column_text(stmt, 2);
+		t.created = (const char*)sqlite3_column_text(stmt, 3);
+		t.finished = (const char*)sqlite3_column_type(stmt, 4);
+		t.id_category = sqlite3_column_int(stmt, 5);
 
-// útil para usar nos debugs
-// static int callback(void* data, int argc, char** argv, char** azColName)
-// {
-//     int i;
-//     fprintf(stderr, "%s: ", (const char*)data);
-  
-//     for (i = 0; i < argc; i++) {
-//         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-//     }
-  
-//     printf("\n");
-//     return 0;
-// }
+		vector_t.push_back(t);
+		
+		// delete c;
+	}
+	
+	// Free the statement when done.
+	sqlite3_finalize(stmt);
+
+	return vector_t;
+
+}
+
 
 
 

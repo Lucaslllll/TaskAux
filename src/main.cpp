@@ -3,12 +3,25 @@
 #include <fstream>
 #include <sstream>
 
+#include "sqlite3.h"
 #include "crow.h"
 #include "db.hpp"
 
 using namespace std;
 
 
+
+static int callback(void* data, int argc, char** argv, char** azColName){
+    int i;
+    fprintf(stderr, "%s: ", (const char*)data);
+  
+    for (i = 0; i < argc; i++) {
+        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+    }
+  
+    printf("\n");
+    return 0;
+}
 
 
 
@@ -22,7 +35,47 @@ int main(int argc, char *argv[]){
             Database *data = new Database();
             data->createTableCategory();
             data->createTableTask();
+            data->closeDB();
+            delete data;
+        
             cout << "Tables Created" << "\n";
+        }else if(strcmp( argv[1], "sqlmanipulation") == 0){
+            // MANIPULATION AND TESTING
+
+
+            cout << "to exit type /q" << "\n";
+            sqlite3 *m_db;
+            char* messageError;
+            string query = "";
+            bool looping = true;
+            int exit = sqlite3_open("sqldata.db", &m_db);
+    
+            // update
+            
+            
+            while(looping == true){
+                getline(cin, query);
+
+                if (query == "/q"){
+                    looping = false;
+                }else{
+
+
+                    exit = sqlite3_exec(m_db, query.c_str(), callback, 0, &messageError);
+                    if (exit != SQLITE_OK) {
+                        cerr << messageError << "\n";
+                        sqlite3_free(messageError);    
+                        
+                    }
+
+
+                }
+
+            
+            }
+        
+            // ia me esquecendo de fechar
+            sqlite3_close(m_db);
         }
     }
 
@@ -47,6 +100,7 @@ int main(int argc, char *argv[]){
 
             Database *data = new Database();
             bool posted = data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+            data->closeDB();
             delete data;
 
             if (posted){
@@ -74,7 +128,8 @@ int main(int argc, char *argv[]){
                 ++contador;
             }
 
-            
+            data.closeDB();
+
             return crow::response(x);   
         
         }
@@ -84,7 +139,7 @@ int main(int argc, char *argv[]){
     });
 
 
-    CROW_ROUTE(app, "/task/<int>").methods("DELETE"_method)([](const crow::request& req, int id){
+    CROW_ROUTE(app, "/task/<int>").methods("DELETE"_method, "PUT"_method, "GET"_method)([](const crow::request& req, int id){
         if (req.method == "DELETE"_method){
             auto x = crow::json::load(req.body);
             if (!x){
@@ -93,6 +148,7 @@ int main(int argc, char *argv[]){
 
             Database *data = new Database();
             bool deleted = data->removeTableTask(id);
+            data->closeDB();
             delete data;
 
             if (deleted){
@@ -101,6 +157,46 @@ int main(int argc, char *argv[]){
                 return crow::response(404, "not found task");   
             }
             
+        
+        }else if (req.method == "PUT"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            bool posted = data->updateTableTask(id, x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+            data->closeDB();
+            delete data;
+
+            if (posted){
+                return crow::response(200, "ok");
+            }else{
+                return crow::response(400, "UNIQUE constraint failed: TASK.ID");   
+            }
+
+        }else if(req.method == "GET"_method){
+            // retrieve
+            Database data = Database();
+            crow::json::wvalue x;
+            int contador = 0;
+            
+            // Database::task
+            for (auto task : data.selectTableTask(id)){
+
+                x[contador]["id"] = task.id;
+                x[contador]["name"] = task.name;
+                x[contador]["text"] = task.text;
+                x[contador]["created"] = task.created;
+                x[contador]["finished"] = task.finished;
+                x[contador]["id_category"] = task.id_category;
+
+                ++contador;
+            }
+
+            data.closeDB();
+
+            return crow::response(x);   
         
         }
 
@@ -130,7 +226,8 @@ int main(int argc, char *argv[]){
                 ++contador;
 
             }
-
+            // fechando o db
+            data.closeDB();
             
             return crow::response(x);
 
@@ -141,7 +238,8 @@ int main(int argc, char *argv[]){
             }
 
             Database *data = new Database();
-            bool posted = data->insertTableCategory(x["id"].i(), x["name"].s());
+            bool posted = data->insertTableCategory(x["name"].s());
+            data->closeDB();
             delete data;
 
             if(posted){
@@ -156,7 +254,7 @@ int main(int argc, char *argv[]){
     
     });
 
-    CROW_ROUTE(app, "/category/<int>").methods("PUT"_method, "DELETE"_method)([](const crow::request& req, int id){
+    CROW_ROUTE(app, "/category/<int>").methods("PUT"_method, "DELETE"_method, "GET"_method)([](const crow::request& req, int id){
         if (req.method == "DELETE"_method){
             auto x = crow::json::load(req.body);
             if (!x){
@@ -165,6 +263,8 @@ int main(int argc, char *argv[]){
 
             Database *data = new Database();
             bool deleted = data->removeTableCategory(id);
+            data->closeDB();
+            delete data;
 
             if (deleted){
                 return crow::response(200, "deleted with success");
@@ -173,6 +273,41 @@ int main(int argc, char *argv[]){
             }
 
 
+        }else if (req.method == "PUT"_method){
+            auto x = crow::json::load(req.body);
+            if (!x){
+                return crow::response(400);
+            }
+
+            Database *data = new Database();
+            bool posted = data->updateTableCategory(id, x["name"].s());
+            data->closeDB();
+            delete data;
+
+            if (posted){
+                return crow::response(200, "ok");
+            }else{
+                return crow::response(400, "UNIQUE constraint failed: CATEGORY.ID");   
+            }
+
+        }else if(req.method == "GET"_method){
+            // retrieve
+            Database data = Database();
+            crow::json::wvalue x;
+            int contador = 0;
+            
+            for (auto cat : data.selectTableCategory(id)){
+
+                x[contador]["id"] = cat.id;
+                x[contador]["name"] = cat.name;
+
+                ++contador;
+            }
+
+            data.closeDB();
+
+            return crow::response(x);   
+        
         }
 
 
@@ -185,4 +320,6 @@ int main(int argc, char *argv[]){
 
 
     app.port(18080).run();
+
+
 } 
