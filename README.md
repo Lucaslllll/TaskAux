@@ -1,6 +1,6 @@
-# CROW_PROJECT_FIRST
+# TaskAux
 
-project to improve my skills with c++ and rest api http in c++
+project to improve my skills with c++ and rest api http in c++. 
 
 # how execute
 
