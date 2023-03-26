@@ -238,7 +238,7 @@ int main(int argc, char *argv[]){
             }
 
             Database *data = new Database();
-            bool posted = data->insertTableCategory(x["name"].s());
+            bool posted = data->insertTableCategory(x["id"].i(), x["name"].s());
             data->closeDB();
             delete data;
 

@@ -43,8 +43,23 @@ bool Database::insertTableCategory(int id, string name){
 	char* messageError;
     int exit = sqlite3_open("sqldata.db", &m_db);
     
+
+    // SELECT MAX(ID) FROM CATEGORY;
+    sqlite3_stmt *stmt;
+	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
+	int id_c = -1;
+	if (rc != SQLITE_OK) {
+		cerr << "Erro no Select" << "\n";
+		sqlite3_finalize(stmt);
+		return false;	
+	}else{
+		id_c = sqlite3_column_int(stmt, 0);
+		
+	}
+	sqlite3_finalize(stmt);
+
   	// insert
-    string sql = "INSERT INTO CATEGORY VALUES("+to_string(id)+", '"+name+"');";
+    string sql = "INSERT INTO CATEGORY VALUES("+to_string(id_c)+", '"+name+"');";
   
     exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
     if (exit != SQLITE_OK) {
@@ -104,6 +119,8 @@ bool Database::updateTableCategory(int id, string name){
 }
 
 
+
+
 vector <Database::category> Database::selectTableCategory(){
 	sqlite3_stmt *stmt;
     int rc = sqlite3_open("sqldata.db", &m_db);
@@ -112,7 +129,7 @@ vector <Database::category> Database::selectTableCategory(){
 
 	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
 	if (rc != SQLITE_OK) {
-		cerr << "Erro" << "\n";
+		cerr << "Erro AO SELECT" << "\n";
 		return vector_c;
 	}
 
