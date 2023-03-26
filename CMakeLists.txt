@@ -24,7 +24,7 @@ add_executable( ${APP_NAME}
 # define C++14 standard
 set_property(TARGET ${APP_NAME} PROPERTY CXX_STANDARD 14)
 
-#sqlite3
+#sqlite3 find
 include_directories(/usr/include)
 link_directories(/usr/lib)
 
@@ -32,7 +32,7 @@ link_directories(/usr/lib)
 find_package(Crow)
 
 # json
-#find_package(nlohmann_json 3.11.2 REQUIRED)
+## find_package(nlohmann_json 3.11.2 REQUIRED)
 
 # add crow and sqlite3 and json
 target_link_libraries(${APP_NAME} PUBLIC Crow::Crow sqlite3)
