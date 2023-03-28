@@ -18,7 +18,7 @@ static int callback(void* data, int argc, char** argv, char** azColName){
     for (i = 0; i < argc; i++) {
         printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
     }
-  
+    
     printf("\n");
     return 0;
 }
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]){
             }
         
             // ia me esquecendo de fechar
+            sqlite3_free(messageError);
             sqlite3_close(m_db);
         }
     }
@@ -97,17 +98,21 @@ int main(int argc, char *argv[]){
             if (!x){
                 return crow::response(400);
             }
-
+           
+           
             Database *data = new Database();
-            bool posted = data->insertTableTask(x["id"].i(), x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
+            bool posted = data->insertTableTask(x["name"].s(), x["text"].s(), x["created"].s(), x["finished"].b(), x["id_category"].i());
             data->closeDB();
             delete data;
 
             if (posted){
                 return crow::response(200, "ok");
             }else{
-                return crow::response(400, "UNIQUE constraint failed: CATEGORY.ID");   
+                return crow::response(400, "UNIQUE constraint failed: TASK.ID");   
             }
+
+
+
             
         
         }else if(req.method == "GET"_method){
@@ -238,7 +243,7 @@ int main(int argc, char *argv[]){
             }
 
             Database *data = new Database();
-            bool posted = data->insertTableCategory(x["id"].i(), x["name"].s());
+            bool posted = data->insertTableCategory(x["name"].s());
             data->closeDB();
             delete data;
 

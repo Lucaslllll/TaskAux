@@ -39,30 +39,35 @@ bool Database::createTableCategory(){
 
 }
 
-bool Database::insertTableCategory(int id, string name){
+bool Database::insertTableCategory(string name){
 	char* messageError;
-    int exit = sqlite3_open("sqldata.db", &m_db);
-    
-
-    // SELECT MAX(ID) FROM CATEGORY;
     sqlite3_stmt *stmt;
-	rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
-	int id_c = -1;
+
+    string query = "SELECT * FROM CATEGORY ORDER BY ID DESC LIMIT 1;";
+    
+	int rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
+	int id_c = 0;
+
 	if (rc != SQLITE_OK) {
 		cerr << "Erro no Select" << "\n";
 		sqlite3_finalize(stmt);
 		return false;	
 	}else{
-		id_c = sqlite3_column_int(stmt, 0);
-		
+
+		while ( ( rc = sqlite3_step(stmt) ) == SQLITE_ROW ) {
+			id_c = sqlite3_column_int(stmt, 0);
+		}
+
+
 	}
 	sqlite3_finalize(stmt);
+	
 
   	// insert
-    string sql = "INSERT INTO CATEGORY VALUES("+to_string(id_c)+", '"+name+"');";
+    string sql = "INSERT INTO CATEGORY VALUES("+to_string(id_c+1)+", '"+name+"');";
   
-    exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
-    if (exit != SQLITE_OK) {
+    rc = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
+    if (rc != SQLITE_OK) {
         cerr << messageError << "\n";
     	sqlite3_free(messageError);    
     	
@@ -216,16 +221,36 @@ bool Database::createTableTask(){
 
 
 
-bool Database::insertTableTask(int id, string name, string text, string created, bool finished, int id_category){
+bool Database::insertTableTask(string name, string text, string created, bool finished, int id_category){
 	char* messageError;
-    int exit = sqlite3_open("sqldata.db", &m_db);
+    sqlite3_stmt *stmt;
+
+    cout << "OPS2" << endl;
+    string query = "SELECT * FROM TASK ORDER BY ID DESC LIMIT 1;";
     
+	int rc = sqlite3_prepare_v2(m_db, query.c_str(), query.length(), &stmt, nullptr);
+	int id_c = 0;
+
+	if (rc != SQLITE_OK) {
+		cerr << "Erro no Select" << "\n";
+		sqlite3_finalize(stmt);
+		return false;	
+	}else{
+
+		while ( ( rc = sqlite3_step(stmt) ) == SQLITE_ROW ) {
+			id_c = sqlite3_column_int(stmt, 0);
+		}
+
+
+	}
+	sqlite3_finalize(stmt);
+
 
     // insert
-    string sql = "INSERT INTO TASK VALUES("+to_string(id)+", '"+name+"', '"+text+"', "+created+", "+to_string(finished)+", "+to_string(id_category)+");";
+    string sql = "INSERT INTO TASK VALUES("+to_string(id_c+1)+", '"+name+"', '"+text+"', "+created+", "+to_string(finished)+", "+to_string(id_category)+");";
   
-    exit = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
-    if (exit != SQLITE_OK) {
+    rc = sqlite3_exec(m_db, sql.c_str(), NULL, 0, &messageError);
+    if (rc != SQLITE_OK) {
         cerr << messageError << "\n";
         sqlite3_free(messageError);
     	
